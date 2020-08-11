@@ -5,6 +5,7 @@ import { w3cwebsocket as WebSocket } from 'websocket';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import Box from '@material-ui/core/Box';
 import Container from 'react-bootstrap/Container';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Col from 'react-bootstrap/Col';
@@ -23,7 +24,7 @@ type Player = {
 const App = () => {
   // Hooks
   const [players, setPlayers] = useState<Array<Player>>([]);
-  const [id, setId] = useState(null);
+  const [id, setId] = useState<?string>(null);
 
   const onopen = () => {
     console.log('ws connected');
@@ -38,8 +39,6 @@ const App = () => {
       setId(null);
     }
   };
-
-  setPlayers(false);
 
   useEffect(() => {
     client.onopen = onopen;
