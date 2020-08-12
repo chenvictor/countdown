@@ -1,10 +1,17 @@
+// @flow
 import React from 'react';
+
+import type {Player} from '../App';
 
 import ListGroup from 'react-bootstrap/ListGroup';
 
+type Props = {
+  players: Array<Player>,
+};
+
 const PlayerList = ({
   players
-}) => {
+}: Props) => {
   return <div>
     <h2>Players</h2>
     {players.length === 0

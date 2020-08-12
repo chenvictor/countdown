@@ -1,4 +1,9 @@
-import React, {useState} from 'react';
+// @flow
+import React, {useContext, useState} from 'react';
+import WSContext from './WSContext';
+
+import type {ID} from './types';
+import type {WebSocketResponse} from './utils/wsplus';
 
 import Form from 'react-bootstrap/Form';
 import Button from './components/CustomButton';
@@ -10,12 +15,17 @@ const ERRORS = {
   }
 };
 
-const Lobby = () => {
+type Props = {
+  setId: (ID) => void,
+}
+
+const Setup = ({setId}: Props) => {
+  const ws = useContext(WSContext);
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState(ERRORS.NAME.BLANK);
   const [loading, setLoading] = useState(false);
   const onNameChange = (e) => {
-    const newName = e.target.value;
+    const newName: string = e.target.value;
     setName(newName);
     if (newName.length === 0) {
       setNameError(ERRORS.NAME.BLANK);
@@ -36,12 +46,18 @@ const Lobby = () => {
     }
     console.log('submitting', name);
     setLoading(true);
-    setTimeout(() => {
+    ws.sendRes({
+      newName: name,
+    }).then((res: WebSocketResponse) => {
       setLoading(false);
-      setNameError(ERRORS.NAME.TAKEN);
-    }, 1500);
+      if (res.error) {
+        console.error(res.message);
+        setNameError(res.message);
+      } else {
+        setId(res.id);
+      }
+    });
   };
-  console.log({loading});
 
   return (
     <div>
@@ -60,4 +76,4 @@ const Lobby = () => {
   );
 };
 
-export default Lobby;
+export default Setup;

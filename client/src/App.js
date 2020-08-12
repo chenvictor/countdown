@@ -1,49 +1,49 @@
 // @flow
 
-import React, {useEffect, useState} from 'react';
-import { w3cwebsocket as WebSocket } from 'websocket';
+import React, {useContext, useEffect, useState} from 'react';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import type {Player} from './types';
 
-import Box from '@material-ui/core/Box';
-import Container from 'react-bootstrap/Container';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogTitle';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Container from '@material-ui/core/Container';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 
 import PlayerList from './components/PlayerList';
-import Lobby from './Lobby';
+import Setup from './Setup';
 
-const client = new WebSocket('ws://localhost:3001');
+import type {WebSocketMessage} from './utils/wsplus';
 
-type Player = {
-  id: string,
-  name: string,
-};
+import WSContext from './WSContext';
 
 const App = () => {
+  const ws = useContext(WSContext);
   // Hooks
+  const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState<Array<Player>>([]);
   const [id, setId] = useState<?string>(null);
 
-  const onopen = () => {
-    console.log('ws connected');
+  const onopen = (ws) => {
+    console.debug('ws connected');
+    setTimeout(() => setLoading(false), 250);
   };
-  const onmessage = (message) => {
-    console.log('message received', message);
-    const {players, init} = JSON.parse(message);
-    if (players) {
-      setPlayers(players);
-    }
-    if (init) {
-      setId(null);
+  const onmessage = (ws, message: WebSocketMessage) => {
+    console.log(message);
+    if (message.players) {
+      setPlayers(message.players);
     }
   };
 
   useEffect(() => {
-    client.onopen = onopen;
-    client.onmessage = onmessage;
-  }, []);
+    ws.setHandlers({
+      onopen,
+      onmessage,
+    });
+  }, [ws]);
 
   return (
     <Container className='my-5'>
@@ -55,13 +55,24 @@ const App = () => {
         <Col>
           {id
             ? <h4>id is {id}</h4>
-            : <Lobby />
+            : <Setup setId={setId}/>
           }
         </Col>
         </Row>
       </Jumbotron>
+      <Dialog
+        open={loading}
+        p={5}
+      >
+        <DialogContent>
+          <div>Connecting to server...</div>
+          <CircularProgress />
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 }
 
 export default App;
+
+export type { Player };
