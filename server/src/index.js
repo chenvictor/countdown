@@ -28,6 +28,11 @@ const playerNames = new Set<string>();
 const onConnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
   console.debug(`instance connected: ${ws.id}`);
   ws.sendPlayerList(getPlayerList(wss));
+  {
+    // // temp assign name for faster dev, remove this!
+    // ws.name = 'foobar';
+    // wss.broadcastPlayerList(getPlayerList(wss));
+  }
 };
 
 const onDisconnection = (wss: WebSocketServer, ws: WebSocketInstance) => {

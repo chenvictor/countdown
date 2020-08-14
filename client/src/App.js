@@ -14,7 +14,8 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 
 import PlayerList from './components/PlayerList';
-import Setup from './Setup';
+import Setup from './components/Setup';
+import Game from './components/Game';
 
 import WebSocketClient from './wsclient';
 
@@ -52,7 +53,7 @@ const App = () => {
           </Col>
           <Col>
             {me
-              ? <h4>id is {id}</h4>
+              ? <Game />
               : <Setup />
             }
           </Col>

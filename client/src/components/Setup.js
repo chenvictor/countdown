@@ -1,12 +1,13 @@
 // @flow
+
 import React, {useContext, useState} from 'react';
 import Form from 'react-bootstrap/Form';
 
-import type {Response} from './shared/types';
-import {MESSAGE} from './shared/constants';
+import type {Response} from '../shared/types';
+import {MESSAGE} from '../shared/constants';
 
-import WSContext from './WSContext';
-import Button from './components/CustomButton';
+import WSContext from '../WSContext';
+import Button from './CustomButton';
 
 const ERRORS = {
   NAME: {
@@ -29,10 +30,14 @@ const Setup = () => {
       setNameError(null);
     }
   };
+  const validateName = () => {
+    const trimmed = name.trim();
+    if (trimmed !== name) {
+      setName(trimmed);
+    }
+  };
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const submitName = () => {
     if (!!nameError) {
       return;
     }
@@ -47,6 +52,12 @@ const Setup = () => {
         setLoading(false);
       }
     });
+  }
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    submitName();
   };
 
   return (
@@ -55,11 +66,11 @@ const Setup = () => {
       <Form noValidate onSubmit={onSubmit}>
         <Form.Group controlId='nameInput'>
           <Form.Label>Name</Form.Label>
-          <Form.Control autoFocus isInvalid={!!nameError} placeholder='Name' required value={name} onChange={onNameChange} maxLength={20} />
+          <Form.Control onBlur={validateName} autoFocus isInvalid={!!nameError} placeholder='Name' required value={name} onChange={onNameChange} maxLength={20} />
           <Form.Control.Feedback type='invalid'>{nameError}</Form.Control.Feedback>
         </Form.Group>
         <Form.Group controlId='submitButton'>
-          <Button text='Join' isDisabled={!!nameError} isLoading={loading} />
+          <Button text='Join' isDisabled={!!nameError} isLoading={loading} onClick={submitName} />
         </Form.Group>
       </Form>
     </div>

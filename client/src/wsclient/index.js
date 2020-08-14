@@ -25,20 +25,43 @@ type ClientCallbacks = {
 };
 
 export default class WebSocketClient {
+  url: string;
   ws: any;
   ready: boolean;
   message_id: number;
   requests: Map<ID, PendingRequest>;
+  callbacks: ?ClientCallbacks;
   constructor(url: string) {
-    this.ws = new w3cwebsocket('ws://localhost:3001');
+    this.url = url;
+    this.ws = null;
     this.ready = false;
     this.message_id = 0;
     this.requests = new Map();
+    this.callbacks = null;
+    this._connect();
   }
 
-  setCallbacks(callbacks: ClientCallbacks): void {
+  _connect(): void {
+    if (this.ws) {
+      this.ws.close();
+    }
+    this.ws = new w3cwebsocket(this.url);
+    this._attachCallbacks();
+  }
+
+  _attachCallbacks(): void {
+    const callbacks = this.callbacks;
+    if (!callbacks) {
+      return;
+    }
     this.ws.onopen = () => {
       callbacks.onConnectionChange(true);
+    };
+    this.ws.onclose = () => {
+      callbacks.onConnectionChange(false);
+      console.warn('connection closed, attempting to reconnect');
+      this.ws = null;
+      this._connect();
     };
     this.ws.onmessage = ({data}: {data: string}) => {
       const rawResponse = parseResponse(data);
@@ -56,6 +79,15 @@ export default class WebSocketClient {
       }
       console.warn('unknown message format', {data});
     };
+    this.ws.onerror = (e) => {
+      console.error('socket error, closing connection', e);
+      this.ws.close();
+    };
+  }
+
+  setCallbacks(callbacks: ClientCallbacks): void {
+    this.callbacks = callbacks;
+    this._attachCallbacks();
   }
 
   _resolveRequest(id: ID, response: ?Response): void {
