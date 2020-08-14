@@ -1,28 +1,24 @@
 // @flow
 import React, {useContext, useState} from 'react';
-import WSContext from './WSContext';
-
-import type {ID} from './types';
-import type {WebSocketResponse} from './utils/wsplus';
-
 import Form from 'react-bootstrap/Form';
+
+import type {Response} from './shared/types';
+import {MESSAGE} from './shared/constants';
+
+import WSContext from './WSContext';
 import Button from './components/CustomButton';
 
 const ERRORS = {
   NAME: {
     BLANK: 'Please enter a name',
-    TAKEN: 'This name is taken'
+    TAKEN: MESSAGE.NAME_TAKEN,
   }
 };
 
-type Props = {
-  setId: (ID) => void,
-}
-
-const Setup = ({setId}: Props) => {
+const Setup = () => {
   const ws = useContext(WSContext);
   const [name, setName] = useState('');
-  const [nameError, setNameError] = useState(ERRORS.NAME.BLANK);
+  const [nameError, setNameError] = useState<?string>(ERRORS.NAME.BLANK);
   const [loading, setLoading] = useState(false);
   const onNameChange = (e) => {
     const newName: string = e.target.value;
@@ -44,17 +40,11 @@ const Setup = ({setId}: Props) => {
       setNameError(ERRORS.NAME.BLANK);
       return;
     }
-    console.log('submitting', name);
     setLoading(true);
-    ws.sendRes({
-      newName: name,
-    }).then((res: WebSocketResponse) => {
+    ws.sendNameUpdate(name).then((res: Response) => {
       setLoading(false);
       if (res.error) {
-        console.error(res.message);
         setNameError(res.message);
-      } else {
-        setId(res.id);
       }
     });
   };

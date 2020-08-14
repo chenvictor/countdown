@@ -3,7 +3,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import type {Player} from './types';
+import type {ID, Player} from '../../shared/types';
 
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogTitle';
@@ -16,63 +16,65 @@ import Row from 'react-bootstrap/Row';
 import PlayerList from './components/PlayerList';
 import Setup from './Setup';
 
-import type {WebSocketMessage} from './utils/wsplus';
+import type {WebSocketMessage} from './wsclient';
+import WebSocketClient from './wsclient';
 
 import WSContext from './WSContext';
 
-const App = () => {
-  const ws = useContext(WSContext);
-  // Hooks
-  const [loading, setLoading] = useState(true);
-  const [players, setPlayers] = useState<Array<Player>>([]);
-  const [id, setId] = useState<?string>(null);
+type Props = {||};
 
-  const onopen = (ws) => {
-    console.debug('ws connected');
-    setTimeout(() => setLoading(false), 250);
-  };
-  const onmessage = (ws, message: WebSocketMessage) => {
-    console.log(message);
-    if (message.players) {
-      setPlayers(message.players);
-    }
-  };
+const App = (props: Props) => {
+  // Hooks
+  const [connecting, setConnecting] = useState(true);
+  const [players, setPlayers] = useState<Array<Player>>([]);
+  const [id, setId] = useState<?ID>(null);
 
   useEffect(() => {
-    ws.setHandlers({
-      onopen,
-      onmessage,
+    window._ws = new WebSocketClient('ws://localhost:3001', {
+      onConnectionChange: (connected): void => {
+        setTimeout(() => {
+          setConnecting(!connected);
+        }, 250);
+      },
+      onStateUpdate: (gameStateUpdate): void => {
+        const updatePlayers = gameStateUpdate.players;
+        if (updatePlayers) {
+          setPlayers(updatePlayers);
+        }
+      },
     });
-  }, [ws]);
+  }, []);
 
   return (
-    <Container className='my-5'>
-      <Jumbotron>
-        <Row>
-        <Col xs={3}>
-          <PlayerList players={players} />
-        </Col>
-        <Col>
-          {id
-            ? <h4>id is {id}</h4>
-            : <Setup setId={setId}/>
-          }
-        </Col>
-        </Row>
-      </Jumbotron>
-      <Dialog
-        open={loading}
-        p={5}
-      >
-        <DialogContent>
-          <div>Connecting to server...</div>
-          <CircularProgress />
-        </DialogContent>
-      </Dialog>
-    </Container>
+    <WSContext.Provider value={window._ws}>
+      <Container className='my-5'>
+        <Jumbotron>
+          <Row>
+          <Col xs={3}>
+            <PlayerList players={players} />
+          </Col>
+          <Col>
+            {id
+              ? <h4>id is {id}</h4>
+              : <Setup />
+            }
+          </Col>
+          </Row>
+        </Jumbotron>
+        <Dialog
+          open={connecting}
+          p={5}
+        >
+          <DialogContent>
+            <div>Connecting to server...</div>
+            <CircularProgress />
+          </DialogContent>
+        </Dialog>
+      </Container>
+    </WSContext.Provider>
   );
 }
 
-export default App;
+export default React.memo<Props>(App);
 
 export type { Player };

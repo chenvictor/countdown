@@ -1,129 +1,79 @@
 // @flow
-const WebSocket = require('ws');
-const { default: ShortUniqueId } = require('short-unique-id');
-const uid = new ShortUniqueId();
+
+import type {Player, Request, Response} from '../../shared/types';
+
+const {WebSocketServer, WebSocketInstance} = require('./wsserver');
 
 const port = 3001;
 
-const wss = new WebSocket.Server({
-  port,
-}, () => {
-  console.log(`WebSocket Server started on port ${port}`);
-});
-
-const wssMap = new Map();
-const nameSet = new Set();
-
-type Player = {
-  id: string,
-  name: string,
-};
-
-type WebSocketData = {
-  id: string,
-  name: ?string,
-};
-
-const getWSData = (ws): WebSocketData => {
-  return ws.data;
-}
-
-const getNamedPlayerList = (): Array<Player> => {
-  const players: Array<WebSocketData> = [...wssMap.values()].map(getWSData);
-  return (players.filter(p => p.name !== null): any);
-};
-
-const broadcast = (data) => {
-  console.log('broadcasting', data);
-  wss.clients.forEach(ws => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(data));
+const getPlayerList = (wss: WebSocketServer): Array<Player> => {
+  const players = [];
+  for (const instance of wss.instances) {
+    if (instance.name) {
+      players.push({
+        id: instance.id,
+        name: instance.name,
+      });
     }
-  })
-}
+  }
+  return players;
+}; 
 
-const onNewName = (ws, m_id, newName: string) => {
-  if (!newName) {
-    return;
+const ERROR = {
+  NAME_TAKEN: 'This name is taken',
+};
+
+const playerNames = new Set<string>();
+
+const onConnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
+  console.debug(`instance connected: ${ws.id}`);
+  ws.sendPlayerList({
+    players: getPlayerList(wss)
+  });
+};
+
+const onDisconnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
+  console.debug(`instance disconnected: ${ws.id}`);
+  if (ws.name) {
+    playerNames.delete(ws.name);
   }
-  if (newName === ws.data.name) {
-    // no change
-    ws.send(JSON.stringify({
-      m_id,
+};
+
+const onRequest = (wss: WebSocketServer, ws: WebSocketInstance, request: Request): Response => {
+  console.log(`request from client: ${ws.id}`, {request});
+  const {newName} = request;
+  if (playerNames.has(newName)) {
+    return {
       error: true,
-      message: 'NAME UNCHANGED',
-    }))
-    return;
+      message: ERROR.NAME_TAKEN,
+    };
   }
-  if (nameSet.has(newName)) {
-    ws.send(JSON.stringify({
-      m_id,
-      error: true,
-      message: 'NAME TAKEN',
-    }));
-    return;
+  if (ws.name) {
+    playerNames.delete(ws.name);
   }
-  ws.send(JSON.stringify({
-    m_id,
+  ws.name = newName;
+  playerNames.add(ws.name);
+  wss.broadcastPlayerList({
+    players: getPlayerList(wss),
+  });
+  return {
     error: false,
-    id: ws.data.id,
-  }));
-  nameSet.delete(ws.data.name);
-  ws.data.name = newName;
-  nameSet.add(ws.data.name);
-  // Update clients
-  broadcast({
-    players: getNamedPlayerList(),
-  });
+    data: null,
+  };
 };
 
-const onResRequested = (ws, m_id, data) => {
-  console.log('res requested: ', m_id);
-  if ('newName' in data) {
-    onNewName(ws, m_id, data.newName);
-    return;
-  }
-  ws.send(JSON.stringify({
-    m_id,
-    error: true,
-    message: 'UNKNOWN REQUEST',
-  }));
+const onMessage = (wss: WebSocketServer, ws: WebSocketInstance, message: string): void => {
+  console.log(`message from client: ${ws.id}`, {message});
 }
 
-wss.on('connection', ws => {
-  const id: string = uid.seq();
-  console.log('new ws connection: id', id);
-  // Set handlers
-  ws.on('message', message => {
-    console.log(' message', message);
-    let data = null;
-    try {
-      data = JSON.parse(message);
-    } catch (e) {
-      console.error('parse error: ', message);
-      data = {};
-    }
-    console.log(data);
-    if ('m_id' in data) {
-      onResRequested(ws, data.m_id, data.data);
-    }
-  });
-  ws.on('close', () => {
-    console.log('ws connection closed');
-    wssMap.delete(id);
-  });
-
-  // Update wssMap
-  ws.data = {
-    id,
-    name: null,
-  };
-  wssMap.set(id, ws);
-
-  // Send player list
-  console.log('connection open?');
-  console.log(ws.readyState);
-  ws.send(JSON.stringify({
-    players: getNamedPlayerList(),
-  }));
-});
+new WebSocketServer(
+  port,
+  {
+    onConnection,
+    onDisconnection,
+  },
+  {
+    onRequest,
+    onMessage,
+  }
+);

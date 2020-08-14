@@ -1,8 +1,10 @@
 // @flow
 
 import React from 'react';
-import WebSocket from './utils/wsplus';
+import WebSocketClient from './wsclient';
 
-const WSContext = React.createContext<WebSocket>(new WebSocket('ws://localhost:3001'));
+const dummy: WebSocketClient = ('lol': any);
+
+const WSContext = React.createContext<WebSocketClient>(dummy);
 
 export default WSContext;
