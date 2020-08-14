@@ -1,9 +1,9 @@
 // @flow
 
+import type {ID, Event, Player, IDUpdateEvent, PlayerListUpdateEvent, RawResponse, Response, Request} from '../../../shared/types';
+
 const WebSocket = require('ws');
 const assert = require('assert');
-
-import type {ID, GameStateUpdate, GameStateUpdateEvent, RawResponse, Response, Request} from '../../../shared/types';
 
 const {uid} = require('../utils');
 
@@ -31,7 +31,7 @@ class WebSocketInstance {
     this._ws = ws;
     this.name = null;
     this._ws.on(
-      "message",
+      'message',
       (message: string) => {
         const request = parseRequest(message);
         if (request == null) {
@@ -46,16 +46,27 @@ class WebSocketInstance {
         this._ws.send(JSON.stringify(rawResponse));
       },
     );
+    const event: IDUpdateEvent = {
+      type: 'id_update',
+      id,
+    };
+    this.send(event);
+  }
+
+  send(event: Event): void {
+    if (this._ws.readyState !== WebSocket.OPEN) {
+      console.error(`attempting to send event to ${this.id} but socket is not ready!`);
+      return;
+    }
+    this._ws.send(JSON.stringify(event));
   }
   
-  sendPlayerList(state: GameStateUpdate): void {
-    if (this._ws.readyState === WebSocket.OPEN) {
-      const event: GameStateUpdateEvent = {
-        type: "state_update",
-        state,
-      };
-      this._ws.send(JSON.stringify(event));
-    }
+  sendPlayerList(players: Array<Player>): void {
+    const event: PlayerListUpdateEvent = {
+      type: 'player_list_update',
+      players,
+    };
+    this.send(event);
   }
 }
 
@@ -82,7 +93,7 @@ class WebSocketServer {
     );
     this._instances = new Map();
     this._wss.on(
-      "connection",
+      'connection',
       ws => {
         console.debug("socket opened");
         let id: ID = uid();
@@ -115,8 +126,8 @@ class WebSocketServer {
     return [...this._instances.values()];
   }
   
-  broadcastPlayerList(state: GameStateUpdate): void {
-    this._instances.forEach(instance => instance.sendPlayerList(state));
+  broadcastPlayerList(players: Array<Player>): void {
+    this._instances.forEach(instance => instance.sendPlayerList(players));
   }
 };
 

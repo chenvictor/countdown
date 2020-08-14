@@ -2,9 +2,9 @@
 
 import {w3cwebsocket} from 'websocket';
 
-import type {ID, GameStateUpdate, Response, RawRequest, Request, Player, UpdateNameRequest} from '../../../shared/types';
+import type {ID, Response, RawRequest, Request, Player, UpdateNameRequest} from '../../../shared/types';
 
-import {parseResponse, parseStateUpdate} from './utils';
+import {parseResponse, parseEvent, handleEvent} from './utils';
 import {uid} from '../utils';
 
 export type WebSocketMessage = {
@@ -19,7 +19,8 @@ type PendingRequest = {
 const TIMEOUT = 1000;
 
 type ClientCallbacks = {
-  onStateUpdate: (GameStateUpdate) => void,
+  onIDUpdate: (?ID) => void,
+  onPlayerListUpdate: (Array<Player>) => void,
   onConnectionChange: (bool) => void,
 };
 
@@ -28,11 +29,14 @@ export default class WebSocketClient {
   ready: boolean;
   message_id: number;
   requests: Map<ID, PendingRequest>;
-  constructor(url: string, callbacks: ClientCallbacks) {
+  constructor(url: string) {
     this.ws = new w3cwebsocket('ws://localhost:3001');
     this.ready = false;
     this.message_id = 0;
     this.requests = new Map();
+  }
+
+  setCallbacks(callbacks: ClientCallbacks): void {
     this.ws.onopen = () => {
       callbacks.onConnectionChange(true);
     };
@@ -42,12 +46,15 @@ export default class WebSocketClient {
         this._resolveRequest(rawResponse.m_id, rawResponse.response);
         return;
       }
-      const stateUpdate = parseStateUpdate(data);
-      if (stateUpdate) {
-        callbacks.onStateUpdate(stateUpdate);
+      const event = parseEvent(data);
+      if (event) {
+        handleEvent(event, {
+          onPlayerListUpdate: callbacks.onPlayerListUpdate,
+          onIDUpdate: callbacks.onIDUpdate,
+        });
         return;
       }
-      console.warn('unknown message format');
+      console.warn('unknown message format', {data});
     };
   }
 
@@ -88,7 +95,7 @@ export default class WebSocketClient {
 
   async sendNameUpdate(name: string): Promise<Response> {
     const request: UpdateNameRequest = {
-      type: 'update_name',
+      type: 'name_update',
       newName: name,
     };
     return this.send(request);

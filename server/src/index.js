@@ -27,9 +27,7 @@ const playerNames = new Set<string>();
 
 const onConnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
   console.debug(`instance connected: ${ws.id}`);
-  ws.sendPlayerList({
-    players: getPlayerList(wss)
-  });
+  ws.sendPlayerList(getPlayerList(wss));
 };
 
 const onDisconnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
@@ -53,9 +51,7 @@ const onRequest = (wss: WebSocketServer, ws: WebSocketInstance, request: Request
   }
   ws.name = newName;
   playerNames.add(ws.name);
-  wss.broadcastPlayerList({
-    players: getPlayerList(wss),
-  });
+  wss.broadcastPlayerList(getPlayerList(wss));
   return {
     error: false,
     data: null,

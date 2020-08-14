@@ -1,6 +1,6 @@
 // @flow
 
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import type {ID, Player} from '../../shared/types';
@@ -16,45 +16,42 @@ import Row from 'react-bootstrap/Row';
 import PlayerList from './components/PlayerList';
 import Setup from './Setup';
 
-import type {WebSocketMessage} from './wsclient';
 import WebSocketClient from './wsclient';
 
 import WSContext from './WSContext';
 
-type Props = {||};
+const _ws = new WebSocketClient('ws://localhost:3001');
 
-const App = (props: Props) => {
+const App = () => {
   // Hooks
   const [connecting, setConnecting] = useState(true);
   const [players, setPlayers] = useState<Array<Player>>([]);
   const [id, setId] = useState<?ID>(null);
 
+  const me = players.find(player => player.id === id);
+
   useEffect(() => {
-    window._ws = new WebSocketClient('ws://localhost:3001', {
+    _ws.setCallbacks({
       onConnectionChange: (connected): void => {
         setTimeout(() => {
           setConnecting(!connected);
         }, 250);
       },
-      onStateUpdate: (gameStateUpdate): void => {
-        const updatePlayers = gameStateUpdate.players;
-        if (updatePlayers) {
-          setPlayers(updatePlayers);
-        }
-      },
+      onPlayerListUpdate: setPlayers,
+      onIDUpdate: setId,
     });
   }, []);
 
   return (
-    <WSContext.Provider value={window._ws}>
+    <WSContext.Provider value={_ws}>
       <Container className='my-5'>
         <Jumbotron>
           <Row>
           <Col xs={3}>
-            <PlayerList players={players} />
+            <PlayerList me={me} players={players} />
           </Col>
           <Col>
-            {id
+            {me
               ? <h4>id is {id}</h4>
               : <Setup />
             }
@@ -75,6 +72,6 @@ const App = (props: Props) => {
   );
 }
 
-export default React.memo<Props>(App);
+export default App;
 
 export type { Player };

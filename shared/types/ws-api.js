@@ -20,7 +20,7 @@ export type RawResponse = {|
 |};
 
 export type UpdateNameRequest = {|
-  type: 'update_name',
+  type: 'name_update',
   newName: string,
 |};
 
@@ -31,13 +31,14 @@ export type RawRequest = {|
   request: Request,
 |};
 
-export type GameStateUpdate = {|
-  players?: Array<Player>,
+export type PlayerListUpdateEvent = {|
+  type: 'player_list_update',
+  players: Array<Player>,
 |};
 
-export type GameStateUpdateEvent = {|
-  type: 'state_update',
-  state: GameStateUpdate,
+export type IDUpdateEvent = {|
+  type: 'id_update',
+  id: ?ID,
 |};
 
-export type Event = GameStateUpdateEvent;
+export type Event = PlayerListUpdateEvent | IDUpdateEvent;

@@ -42,9 +42,9 @@ const Setup = () => {
     }
     setLoading(true);
     ws.sendNameUpdate(name).then((res: Response) => {
-      setLoading(false);
       if (res.error) {
         setNameError(res.message);
+        setLoading(false);
       }
     });
   };

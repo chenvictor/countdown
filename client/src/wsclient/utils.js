@@ -1,6 +1,6 @@
 // @flow
 
-import type {GameStateUpdate, RawResponse} from '../shared/types/ws-api';
+import type {Event, Player, ID, RawResponse} from '../shared/types';
 import assert from 'assert';
 
 export function parseResponse(raw: string): ?RawResponse {
@@ -18,15 +18,34 @@ export function parseResponse(raw: string): ?RawResponse {
   }
 };
 
-export function parseStateUpdate(raw: string): ?GameStateUpdate {
+export function parseEvent(raw: string): ?Event {
   let parsed = null;
   try {
     parsed = JSON.parse(raw);
-    assert(parsed.type === 'state_update');
-    return {
-      players: parsed.state.players,
-    };
+    assert('type' in parsed);
+    return parsed;
   } catch {
     return null;
+  }
+}
+
+type EventHandlers = {
+  onIDUpdate: (?ID) => void,
+  onPlayerListUpdate: (Array<Player>) => void,
+};
+
+export function handleEvent(event: Event, {
+  onIDUpdate,
+  onPlayerListUpdate,
+}: EventHandlers): void {
+  switch (event.type) {
+    case 'player_list_update':
+      onPlayerListUpdate(event.players);
+      break;
+    case 'id_update':
+      onIDUpdate(event.id);
+      break;
+    default:
+      console.error('unknown event type: ', (event: any));
   }
 }
