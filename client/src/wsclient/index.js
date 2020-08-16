@@ -2,7 +2,8 @@
 
 import {w3cwebsocket} from 'websocket';
 
-import type {ID, Response, RawRequest, Request, Player, UpdateNameRequest} from '../../../shared/types';
+import type {ID, Response, RawRequest, Request, ReadyStates, Player, UpdateNameRequest, ToggleReadyRequest} from '../shared';
+import {REQUEST_TYPE} from '../shared';
 
 import {parseResponse, parseEvent, handleEvent} from './utils';
 import {uid} from '../utils';
@@ -22,6 +23,7 @@ type ClientCallbacks = {
   onIDUpdate: (?ID) => void,
   onPlayerListUpdate: (Array<Player>) => void,
   onConnectionChange: (bool) => void,
+  onReadyStatesUpdate: (ReadyStates) => void,
 };
 
 export default class WebSocketClient {
@@ -74,6 +76,7 @@ export default class WebSocketClient {
         handleEvent(event, {
           onPlayerListUpdate: callbacks.onPlayerListUpdate,
           onIDUpdate: callbacks.onIDUpdate,
+          onReadyStatesUpdate: callbacks.onReadyStatesUpdate,
         });
         return;
       }
@@ -127,8 +130,15 @@ export default class WebSocketClient {
 
   async sendNameUpdate(name: string): Promise<Response> {
     const request: UpdateNameRequest = {
-      type: 'name_update',
+      type: REQUEST_TYPE.UPDATE_NAME,
       newName: name,
+    };
+    return this.send(request);
+  }
+
+  async sendToggleReadyUpdate(): Promise<Response> {
+    const request: ToggleReadyRequest = {
+      type: REQUEST_TYPE.TOGGLE_READY,
     };
     return this.send(request);
   }

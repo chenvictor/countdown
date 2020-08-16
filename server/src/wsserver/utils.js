@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-import type {RawRequest} from '../../../shared/types/ws-api';
+import type {RawRequest, Request, Response} from '../../../shared';
 
 const parseRequest = (raw: string): ?RawRequest => {
   let parsed = null;

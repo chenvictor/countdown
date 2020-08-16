@@ -9,7 +9,7 @@ type Props = {|
 |};
 
 const Game = (props: Props) => {
-  return <Lobby />;
+  return <Lobby isReady={true} />;
 };
 
 export default Game;

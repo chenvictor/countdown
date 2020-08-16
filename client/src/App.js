@@ -3,7 +3,7 @@
 import React, {useEffect, useState} from 'react';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import type {ID, Player} from '../../shared/types';
+import type {ID, Player, ReadyStates} from '../../shared';
 
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogTitle';
@@ -27,6 +27,7 @@ const App = () => {
   // Hooks
   const [connecting, setConnecting] = useState(true);
   const [players, setPlayers] = useState<Array<Player>>([]);
+  const [readyStates, setReadyStates] = useState<ReadyStates>({});
   const [id, setId] = useState<?ID>(null);
 
   const me = players.find(player => player.id === id);
@@ -40,6 +41,7 @@ const App = () => {
       },
       onPlayerListUpdate: setPlayers,
       onIDUpdate: setId,
+      onReadyStatesUpdate: setReadyStates,
     });
   }, []);
 
@@ -49,7 +51,7 @@ const App = () => {
         <Jumbotron>
           <Row>
           <Col xs={3}>
-            <PlayerList me={me} players={players} />
+            <PlayerList me={me} players={players} readyStates={readyStates} />
           </Col>
           <Col>
             {me

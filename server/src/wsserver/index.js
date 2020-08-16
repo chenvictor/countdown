@@ -1,6 +1,17 @@
 // @flow
 
-import type {ID, Event, Player, IDUpdateEvent, PlayerListUpdateEvent, RawResponse, Response, Request} from '../../../shared/types';
+import type {
+  ID, 
+  Event, 
+  Player, 
+  IDUpdateEvent, 
+  PlayerListUpdateEvent, 
+  RawResponse, 
+  ReadyStates,
+  ReadyStatesUpdateEvent,
+  Response, 
+  Request,
+} from '../../../shared';
 
 const WebSocket = require('ws');
 const assert = require('assert');
@@ -19,6 +30,7 @@ class WebSocketInstance {
   _wss: WebSocketServer;
   _ws: any;
   name: ?string;
+  ready: bool;
   
   constructor(
     id: ID,
@@ -30,6 +42,7 @@ class WebSocketInstance {
     this._wss = server;
     this._ws = ws;
     this.name = null;
+    this.ready = false;
     this._ws.on(
       'message',
       (message: string) => {
@@ -125,9 +138,27 @@ class WebSocketServer {
   get instances(): Array<WebSocketInstance> {
     return [...this._instances.values()];
   }
+
+  // Send event to all players
+  broadcast(event: Event): void {
+    this._instances.forEach(instance => instance.send(event));
+  }
+
+  // Send event to all players who have names
+  broadcastNamed(event: Event): void {
+    this._instances.forEach(instance => instance.name && instance.send(event));
+  }
   
   broadcastPlayerList(players: Array<Player>): void {
     this._instances.forEach(instance => instance.sendPlayerList(players));
+  }
+
+  broadcastReadyStates(ready_states: ReadyStates): void {
+    const event: ReadyStatesUpdateEvent = {
+      type: 'ready_states_update',
+      ready_states,
+    };
+    this.broadcastNamed(event);
   }
 };
 

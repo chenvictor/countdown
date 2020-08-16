@@ -3,29 +3,23 @@
 import React, {useContext, useState} from 'react';
 import Form from 'react-bootstrap/Form';
 
-import type {Response} from '../shared/types';
-import {MESSAGE} from '../shared/constants';
+import type {Response} from '../shared';
 
 import WSContext from '../WSContext';
 import Button from './CustomButton';
 
-const ERRORS = {
-  NAME: {
-    BLANK: 'Please enter a name',
-    TAKEN: MESSAGE.NAME_TAKEN,
-  }
-};
+const BLANK_NAME_ERROR = 'Please enter a name';
 
 const Setup = () => {
   const ws = useContext(WSContext);
   const [name, setName] = useState('');
-  const [nameError, setNameError] = useState<?string>(ERRORS.NAME.BLANK);
+  const [nameError, setNameError] = useState<?string>(BLANK_NAME_ERROR);
   const [loading, setLoading] = useState(false);
   const onNameChange = (e) => {
     const newName: string = e.target.value;
     setName(newName);
     if (newName.length === 0) {
-      setNameError(ERRORS.NAME.BLANK);
+      setNameError(BLANK_NAME_ERROR);
     } else if (!!nameError) {
       setNameError(null);
     }
@@ -42,7 +36,7 @@ const Setup = () => {
       return;
     }
     if (name.length === 0) {
-      setNameError(ERRORS.NAME.BLANK);
+      setNameError(BLANK_NAME_ERROR);
       return;
     }
     setLoading(true);

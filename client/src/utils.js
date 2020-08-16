@@ -1,6 +1,6 @@
 // @flow
 
-import type {ID} from './shared/types';
+import type {ID} from './shared';
 
 const {default: ShortUniqueId} = require('short-unique-id');
 const _uid = new ShortUniqueId();
