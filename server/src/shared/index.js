@@ -26,3 +26,4 @@ export type LobbyState = $Values<typeof LOBBY_STATE>;
 export * from './requests';
 export * from './responses';
 export * from './events';
+export * from './game';

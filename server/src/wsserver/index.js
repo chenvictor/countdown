@@ -11,7 +11,9 @@ import type {
   ReadyStatesUpdateEvent,
   Response, 
   Request,
-} from '../../../shared';
+} from '../shared';
+
+import {EVENT_TYPE} from '../shared';
 
 const WebSocket = require('ws');
 const assert = require('assert');
@@ -76,7 +78,7 @@ class WebSocketInstance {
   
   sendPlayerList(players: Array<Player>): void {
     const event: PlayerListUpdateEvent = {
-      type: 'player_list_update',
+      type: EVENT_TYPE.PLAYER_LIST_UPDATE,
       players,
     };
     this.send(event);
@@ -108,7 +110,6 @@ class WebSocketServer {
     this._wss.on(
       'connection',
       ws => {
-        console.debug("socket opened");
         let id: ID = uid();
         let tries = 3;
         while (this._instances.has(id)) {
@@ -124,9 +125,8 @@ class WebSocketServer {
         this._instances.set(id, instance);
         handlers.onConnection(this, instance);
         ws.on(
-          "close",
+          'close',
           () => {
-            console.debug("socket closed");
             this._instances.delete(id);
             handlers.onDisconnection(this, instance);
           },
@@ -161,7 +161,7 @@ class WebSocketServer {
 
   broadcastReadyStates(ready_states: ReadyStates): void {
     const event: ReadyStatesUpdateEvent = {
-      type: 'ready_states_update',
+      type: EVENT_TYPE.READY_STATES_UPDATE,
       ready_states,
     };
     this.broadcastNamed(event);

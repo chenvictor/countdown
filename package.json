@@ -5,8 +5,9 @@
   "license": "MIT",
   "scripts": {
     "start": "concurrently \"yarn run server > server.log\" \"yarn run client > client.log\"",
-    "server": "cd ./server && yarn start",
-    "client": "cd ./client && yarn start"
+    "server": "cd ./server && yarn dev",
+    "client": "cd ./client && yarn start",
+    "shared": "cp -r shared client/src && cp -r shared server/src"
   },
   "devDependencies": {
     "concurrently": "^5.3.0",

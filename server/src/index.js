@@ -5,6 +5,7 @@ import {EVENT_TYPE, REQUEST_TYPE, LOBBY_STATE} from './shared';
 
 const {WebSocketServer, WebSocketInstance} = require('./wsserver');
 const {buildError, getPlayerList, getReadyStates, isAllPlayersReady} = require('./utils');
+import {Game} from './game';
 
 const port = 3001;
 
@@ -21,9 +22,9 @@ const OK_RESPONSE: OkResponse = {
 const playerNames = new Set<string>();
 let lobbyState: LobbyState = LOBBY_STATE.WAITING_FOR_PLAYERS;
 
-const setLobbyState = (newState: LobbyState, wss: WebSocketServer) => {
+const setLobbyState = (newState: LobbyState, wss: WebSocketServer): bool => {
   if (newState === lobbyState) {
-    return;
+    return false;
   }
   lobbyState = newState;
   const event: LobbyStateUpdateEvent = {
@@ -32,6 +33,21 @@ const setLobbyState = (newState: LobbyState, wss: WebSocketServer) => {
   };
   console.log('lobby state:', lobbyState);
   wss.broadcast(event);
+  return true;
+};
+
+const runGame = async (wss: WebSocketServer) => {
+  if(setLobbyState(LOBBY_STATE.IN_GAME, wss)) {
+    console.log('running game');
+    const game = new Game(wss);
+    await game.run();
+  }
+}
+
+const startGame = (wss: WebSocketServer) => {
+  runGame(wss).then(() => {
+    console.log('done running game');
+  });
 };
 
 const onConnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
@@ -82,7 +98,7 @@ const onRequest = (wss: WebSocketServer, ws: WebSocketInstance, request: Request
         ws.ready = !ws.ready;
         wss.broadcastReadyStates(getReadyStates(wss));
         if (isAllPlayersReady(wss)) {
-          setLobbyState(LOBBY_STATE.IN_GAME, wss);
+          startGame(wss);
         }
         return OK_RESPONSE;
       } else {

@@ -7,7 +7,6 @@ import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
-import Form from 'react-bootstrap/Form';
 
 import WSContext from '../WSContext';
 
