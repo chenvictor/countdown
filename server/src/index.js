@@ -1,10 +1,10 @@
 // @flow
 
-import type {Player, Request, OkResponse, ErrorResponse, Response, ReadyStates} from './shared';
-import {REQUEST_TYPE} from './shared';
+import type {Player, Request, OkResponse, ErrorResponse, Response, ReadyStates, LobbyState, LobbyStateUpdateEvent} from './shared';
+import {EVENT_TYPE, REQUEST_TYPE, LOBBY_STATE} from './shared';
 
 const {WebSocketServer, WebSocketInstance} = require('./wsserver');
-const {buildError, getPlayerList, getReadyStates} = require('./utils');
+const {buildError, getPlayerList, getReadyStates, isAllPlayersReady} = require('./utils');
 
 const port = 3001;
 
@@ -17,16 +17,31 @@ const OK_RESPONSE: OkResponse = {
   data: null,
 };
 
+// State stuff
 const playerNames = new Set<string>();
+let lobbyState: LobbyState = LOBBY_STATE.WAITING_FOR_PLAYERS;
+
+const setLobbyState = (newState: LobbyState, wss: WebSocketServer) => {
+  if (newState === lobbyState) {
+    return;
+  }
+  lobbyState = newState;
+  const event: LobbyStateUpdateEvent = {
+    type: EVENT_TYPE.LOBBY_STATE_UPDATE,
+    state: lobbyState,
+  };
+  console.log('lobby state:', lobbyState);
+  wss.broadcast(event);
+};
 
 const onConnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
   console.debug(`instance connected: ${ws.id}`);
   ws.sendPlayerList(getPlayerList(wss));
   {
     // temp assign name for faster dev
-    playerNames.add('foobar');
-    ws.name = 'foobar';
-    wss.broadcastPlayerList(getPlayerList(wss));
+    // playerNames.add('foobar');
+    // ws.name = 'foobar';
+    // wss.broadcastPlayerList(getPlayerList(wss));
   }
 };
 
@@ -35,6 +50,9 @@ const onDisconnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
   if (ws.name) {
     playerNames.delete(ws.name);
   }
+  if (wss.named_instances.length === 0) {
+    setLobbyState(LOBBY_STATE.WAITING_FOR_PLAYERS, wss);
+  }
 };
 
 const onRequest = (wss: WebSocketServer, ws: WebSocketInstance, request: Request): Response => {
@@ -42,6 +60,9 @@ const onRequest = (wss: WebSocketServer, ws: WebSocketInstance, request: Request
   switch (request.type) {
     case REQUEST_TYPE.UPDATE_NAME:
       const newName = request.newName;
+      if (ws.name === null && lobbyState !== LOBBY_STATE.WAITING_FOR_PLAYERS) {
+        return buildError('Game has already started');
+      }
       if (playerNames.has(newName)) {
         return {
           error: true,
@@ -57,9 +78,16 @@ const onRequest = (wss: WebSocketServer, ws: WebSocketInstance, request: Request
       wss.broadcastReadyStates(getReadyStates(wss));
       return OK_RESPONSE;
     case REQUEST_TYPE.TOGGLE_READY:
-      ws.ready = !ws.ready;
-      wss.broadcastReadyStates(getReadyStates(wss));
-      return OK_RESPONSE;
+      if (lobbyState === LOBBY_STATE.WAITING_FOR_PLAYERS) {
+        ws.ready = !ws.ready;
+        wss.broadcastReadyStates(getReadyStates(wss));
+        if (isAllPlayersReady(wss)) {
+          setLobbyState(LOBBY_STATE.IN_GAME, wss);
+        }
+        return OK_RESPONSE;
+      } else {
+        return buildError('game already started');
+      }
     case REQUEST_TYPE.SUBMIT_ANSWER:
       console.error('not yet implemented');
       return buildError('not yet implemented');

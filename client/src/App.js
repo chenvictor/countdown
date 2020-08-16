@@ -71,7 +71,7 @@ const App = () => {
           </Col>
           <Col>
             {me
-              ? <Game />
+              ? <Game me={me} readyStates={readyStates} />
               : <Setup />
             }
           </Col>

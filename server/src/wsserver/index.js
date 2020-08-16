@@ -127,16 +127,22 @@ class WebSocketServer {
           "close",
           () => {
             console.debug("socket closed");
-            handlers.onDisconnection(this, instance);
             this._instances.delete(id);
+            handlers.onDisconnection(this, instance);
           },
         );
       },
     );
   }
   
+  // Return all instances
   get instances(): Array<WebSocketInstance> {
     return [...this._instances.values()];
+  }
+
+  // Return all named instances
+  get named_instances(): Array<WebSocketInstance> {
+    return [...this._instances.values()].filter(instance => instance.name);
   }
 
   // Send event to all players

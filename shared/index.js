@@ -21,7 +21,7 @@ export const LOBBY_STATE = {
   IN_GAME: ('in_game': 'in_game'),
 };
 
-export type LobbyState = $Keys<typeof LOBBY_STATE>;
+export type LobbyState = $Values<typeof LOBBY_STATE>;
 
 export * from './requests';
 export * from './responses';

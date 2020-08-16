@@ -2,14 +2,12 @@
 
 import React, {useContext, useState} from 'react';
 import Switch from '@material-ui/core/Switch';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Box from '@material-ui/core/Box';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import TextField from '@material-ui/core/TextField';
 import FormHelperText from '@material-ui/core/FormHelperText';
+import Form from 'react-bootstrap/Form';
 
 import WSContext from '../WSContext';
 
@@ -20,18 +18,20 @@ type Props = {|
 const Lobby = ({
   isReady,
 }: Props) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<bool>(false);
   const [error, setError] = useState<?string>(null);
+  const [ready, setReady] = useState<bool>(isReady);
   const client = useContext(WSContext);
 
-  const onSwitch = (e): void => {
-    const checked: bool = e.target.checked;
+  const onSwitch = (): void => {
+    setReady(!ready);
     setIsLoading(true);
     setError(null);
     client.sendToggleReadyUpdate().then(response => {
       setIsLoading(false);
       if (response.error) {
         setError(response.message);
+        setReady(ready);
       }
     });
   };
@@ -41,12 +41,11 @@ const Lobby = ({
       <FormLabel component='legend'>Game will start once all players are ready!</FormLabel>
       <FormGroup aria-label='position' row>
         <FormControlLabel
-          value="start"
-          control={<Switch disabled={isLoading} onChange={onSwitch} />}
+          control={<Switch name='temp' disabled={isLoading} checked={ready} onChange={onSwitch} />}
           label='Ready'
           labelPlacement="start"
         />
-        {error && <FormHelperText error={true}>{error}</FormHelperText>}
+        {error && <FormHelperText className='ml-4' error={true}>{error}</FormHelperText>}
       </FormGroup>
     </FormControl>
   );

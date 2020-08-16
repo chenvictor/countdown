@@ -2,7 +2,7 @@
 
 import {w3cwebsocket} from 'websocket';
 
-import type {ID, Response, RawRequest, Request, Event, ReadyStates, Player, UpdateNameRequest, ToggleReadyRequest} from '../shared';
+import type {ID, Response, RawRequest, Request, Event, Player, UpdateNameRequest, ToggleReadyRequest} from '../shared';
 import {REQUEST_TYPE} from '../shared';
 
 import {parseResponse, parseEvent} from './utils';

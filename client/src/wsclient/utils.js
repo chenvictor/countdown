@@ -1,6 +1,6 @@
 // @flow
 
-import type {Event, Player, ID, RawResponse, ReadyStates} from '../shared';
+import type {Event, RawResponse} from '../shared';
 import assert from 'assert';
 
 export function parseResponse(raw: string): ?RawResponse {
