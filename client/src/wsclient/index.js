@@ -2,10 +2,10 @@
 
 import {w3cwebsocket} from 'websocket';
 
-import type {ID, Response, RawRequest, Request, ReadyStates, Player, UpdateNameRequest, ToggleReadyRequest} from '../shared';
+import type {ID, Response, RawRequest, Request, Event, ReadyStates, Player, UpdateNameRequest, ToggleReadyRequest} from '../shared';
 import {REQUEST_TYPE} from '../shared';
 
-import {parseResponse, parseEvent, handleEvent} from './utils';
+import {parseResponse, parseEvent} from './utils';
 import {uid} from '../utils';
 
 export type WebSocketMessage = {
@@ -20,10 +20,8 @@ type PendingRequest = {
 const TIMEOUT = 1000;
 
 type ClientCallbacks = {
-  onIDUpdate: (?ID) => void,
-  onPlayerListUpdate: (Array<Player>) => void,
   onConnectionChange: (bool) => void,
-  onReadyStatesUpdate: (ReadyStates) => void,
+  onEvent: (Event) => void,
 };
 
 export default class WebSocketClient {
@@ -73,11 +71,7 @@ export default class WebSocketClient {
       }
       const event = parseEvent(data);
       if (event) {
-        handleEvent(event, {
-          onPlayerListUpdate: callbacks.onPlayerListUpdate,
-          onIDUpdate: callbacks.onIDUpdate,
-          onReadyStatesUpdate: callbacks.onReadyStatesUpdate,
-        });
+        callbacks.onEvent(event);
         return;
       }
       console.warn('unknown message format', {data});

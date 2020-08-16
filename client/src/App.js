@@ -3,7 +3,8 @@
 import React, {useEffect, useState} from 'react';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import type {ID, Player, ReadyStates} from '../../shared';
+import type {ID, Player, ReadyStates} from './shared';
+import {EVENT_TYPE} from './shared';
 
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogTitle';
@@ -39,9 +40,24 @@ const App = () => {
           setConnecting(!connected);
         }, 250);
       },
-      onPlayerListUpdate: setPlayers,
-      onIDUpdate: setId,
-      onReadyStatesUpdate: setReadyStates,
+      onEvent: (event): void => {
+        switch(event.type) {
+          case EVENT_TYPE.ID_UPDATE:
+            setId(event.id);
+            break;
+          case EVENT_TYPE.PLAYER_LIST_UPDATE:
+            setPlayers(event.players);
+            break;
+          case EVENT_TYPE.READY_STATES_UPDATE:
+            setReadyStates(event.ready_states);
+            break;
+          case EVENT_TYPE.LOBBY_STATE_UPDATE:
+            console.log('lobby state update', event.state);
+            break;
+          default:
+            console.error('unknown event', event);
+        }
+      },
     });
   }, []);
 

@@ -28,29 +28,3 @@ export function parseEvent(raw: string): ?Event {
     return null;
   }
 }
-
-type EventHandlers = {
-  onIDUpdate: (?ID) => void,
-  onPlayerListUpdate: (Array<Player>) => void,
-  onReadyStatesUpdate: (ReadyStates) => void,
-};
-
-export function handleEvent(event: Event, {
-  onIDUpdate,
-  onPlayerListUpdate,
-  onReadyStatesUpdate,
-}: EventHandlers): void {
-  switch (event.type) {
-    case 'player_list_update':
-      onPlayerListUpdate(event.players);
-      break;
-    case 'id_update':
-      onIDUpdate(event.id);
-      break;
-    case 'ready_states_update':
-      onReadyStatesUpdate(event.ready_states);
-      break;
-    default:
-      console.error('unknown event type: ', event);
-  }
-}

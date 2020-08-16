@@ -4,34 +4,17 @@ import type {Player, Request, OkResponse, ErrorResponse, Response, ReadyStates} 
 import {REQUEST_TYPE} from './shared';
 
 const {WebSocketServer, WebSocketInstance} = require('./wsserver');
+const {buildError, getPlayerList, getReadyStates} = require('./utils');
 
 const port = 3001;
 
-const getPlayerList = (wss: WebSocketServer): Array<Player> => {
-  const players = [];
-  for (const instance of wss.instances) {
-    if (instance.name) {
-      players.push({
-        id: instance.id,
-        name: instance.name,
-      });
-    }
-  }
-  return players;
-}; 
-
-const getReadyStates = (wss: WebSocketServer): ReadyStates => {
-  const ready_states = {};
-  for (const instance of wss.instances) {
-    if (instance.name) {
-      ready_states[instance.id] = instance.ready;
-    }
-  }
-  return ready_states;
-};
-
 const ERROR = {
   NAME_TAKEN: 'This name is taken',
+};
+
+const OK_RESPONSE: OkResponse = {
+  error: false,
+  data: null,
 };
 
 const playerNames = new Set<string>();
@@ -40,10 +23,10 @@ const onConnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
   console.debug(`instance connected: ${ws.id}`);
   ws.sendPlayerList(getPlayerList(wss));
   {
-    // // temp assign name for faster dev
-    // playerNames.add('foobar');
-    // ws.name = 'foobar';
-    // wss.broadcastPlayerList(getPlayerList(wss));
+    // temp assign name for faster dev
+    playerNames.add('foobar');
+    ws.name = 'foobar';
+    wss.broadcastPlayerList(getPlayerList(wss));
   }
 };
 
@@ -53,16 +36,6 @@ const onDisconnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
     playerNames.delete(ws.name);
   }
 };
-
-const OK_RESPONSE: OkResponse = {
-  error: false,
-  data: null,
-};
-
-const buildError = (message: string): ErrorResponse => ({
-  error: true,
-  message,
-});
 
 const onRequest = (wss: WebSocketServer, ws: WebSocketInstance, request: Request): Response => {
   console.debug(`request from client: ${ws.id}`, {request});
