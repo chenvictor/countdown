@@ -19,28 +19,25 @@ const Lobby = ({
 }: Props) => {
   const [isLoading, setIsLoading] = useState<bool>(false);
   const [error, setError] = useState<?string>(null);
-  const [ready, setReady] = useState<bool>(isReady);
   const client = useContext(WSContext);
 
   const onSwitch = (): void => {
-    setReady(!ready);
     setIsLoading(true);
     setError(null);
     client.sendToggleReadyUpdate().then(response => {
       setIsLoading(false);
       if (response.error) {
         setError(response.message);
-        setReady(ready);
       }
     });
   };
  
   return (
-    <FormControl comonent='fieldset'>
+    <FormControl component='fieldset'>
       <FormLabel component='legend'>Game will start once all players are ready!</FormLabel>
       <FormGroup aria-label='position' row>
         <FormControlLabel
-          control={<Switch name='temp' disabled={isLoading} checked={ready} onChange={onSwitch} />}
+          control={<Switch name='temp' disabled={isLoading} checked={isReady} onChange={onSwitch} />}
           label='Ready'
           labelPlacement="start"
         />
