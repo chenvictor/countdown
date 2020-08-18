@@ -6,7 +6,7 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 
-import {assertNonNull, parse} from './utils';
+import {parse} from '../../shared/math/utils';
 
 type Props = {|
   submitValue: (string) => void,

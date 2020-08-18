@@ -1,13 +1,9 @@
 // @flow
 
-import type {Equation} from '../../shared/math';
 import assert from 'assert';
 
-export const assertNonNull = <T>(vals: Array<?T>): Array<T> => {
-  vals.forEach(v => assert(v != null));
-  const _vals: Array<T> = (vals: any);
-  return _vals;
-};
+import type {Equation} from './types';
+import {EQUATION_OPERATOR} from './types';
 
 class Stack<T> {
   base: Array<T>;
@@ -114,7 +110,7 @@ export const parse = (eqn: string): Equation | string => {
         const b = stack.top; stack.pop();
         const a = stack.top; stack.pop();
         stack.push({
-          type: token,
+          type: (token: any),
           a,
           b,
         });
@@ -127,4 +123,34 @@ export const parse = (eqn: string): Equation | string => {
     }
     return stack.top;
   })();
+};
+
+/**
+ * Return the evaluated value or null if invalid
+ */
+export const evaluate = (eqn: Equation): ?number => {
+  if (typeof eqn === 'number') {
+    return eqn;
+  } else {
+    const a = evaluate(eqn.a);
+    const b = evaluate(eqn.b);
+    if (!a || !b) {
+      return null;
+    }
+    switch (eqn.type) {
+      case EQUATION_OPERATOR.ADD:
+        return a+b;
+      case EQUATION_OPERATOR.SUBTRACT:
+        return a-b;
+      case EQUATION_OPERATOR.MULTIPLY:
+        return a*b;
+      case EQUATION_OPERATOR.DIVIDE:
+        if (b === 0 || a%b !== 0) {
+          return null;
+        }
+        return a/b;
+      default:
+        return null;
+    }
+  }
 };

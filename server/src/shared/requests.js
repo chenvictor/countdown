@@ -1,6 +1,7 @@
 // @flow
 
 import type {ID} from './index';
+import type {Equation} from './math'
 
 // Client -> Server requests
 export const REQUEST_TYPE = {
@@ -20,7 +21,8 @@ export type ToggleReadyRequest = {|
 
 export type SubmitAnswerRequest = {|
   type: typeof REQUEST_TYPE.SUBMIT_ANSWER,
-
+  equation: Equation,
+  text: string,
 |};
 
 export type Request = UpdateNameRequest | ToggleReadyRequest | SubmitAnswerRequest;
