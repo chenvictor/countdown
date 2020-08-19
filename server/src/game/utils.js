@@ -25,3 +25,15 @@ export const shuffle = (from: Array<number>): Array<number> => {
   }
   return a;
 };
+
+// See https://en.wikipedia.org/wiki/Countdown_(game_show)#Numbers_round
+export const getScore = (difference: number): number => {
+  if (difference === 0) {
+    return 10;
+  } else if (difference <= 5) {
+    return 7;
+  } else if (difference <= 10) {
+    return 5;
+  }
+  return 0;
+}

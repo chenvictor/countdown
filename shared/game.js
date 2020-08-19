@@ -1,7 +1,10 @@
 // @flow
 
+import type {ID} from './index';
+
 export const MAIN_GAME_STATUS = {
   WAITING: ('waiting': 'waiting'),
+  EVALUATING: ('evaluating': 'evaluating'),
 };
 export type MainGameStatus = $Values<typeof MAIN_GAME_STATUS>;
 
@@ -41,6 +44,15 @@ export type PlayingGameState = {|
   timer: ?number,
   target: ?number,
   numbers: Array<?number>,
+|};
+
+export type ShowingGameState = {|
+  ...BaseGameState,
+  status: typeof MAIN_GAME_STATUS.EVALUATING,
+  player_id: ID,
+  player_answer: ?string,
+  player_answer_value: ?number,
+  player_score: ?number,
 |};
 
 export type GameState = WaitingGameState | PlayingGameState;

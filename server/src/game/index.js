@@ -2,6 +2,7 @@
 
 import type {ID, BaseGameState, PlayingGameState, WaitingGameState, GameState, PlayingGameStatus, GameStatus, Response} from '../shared';
 import {EVENT_TYPE, GAME_STATUS, ROUND_LENGTH} from '../shared';
+import {parse, evaluate} from '../shared/math';
 import {WebSocketServer, WebSocketInstance} from '../wsserver';
 import {sleep, shuffle, rand} from './utils';
 
@@ -101,6 +102,7 @@ export class Game {
     console.log({nums});
     
     {
+      this.submissions.clear();
       // Round starting
       if (this.cancelled) return;
       this._setWaitingState('Round Starting...', 3);
@@ -122,6 +124,9 @@ export class Game {
       await this._setPlayingState(GAME_STATUS.ROUND_STARTED, target, numbers, 30);
       if (this.cancelled) return;
       await this._setWaitingState('Round Finished!', 3);
+      for (const player of this.wss.named_instances) {
+        const submission: ?string = this.submissions.get(player.id);
+      }
       console.log("submissions: ", [...this.submissions.values()]);
       if (this.cancelled) return;
       await this._setWaitingState('TODO', 999);

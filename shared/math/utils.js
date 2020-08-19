@@ -154,3 +154,10 @@ export const evaluate = (eqn: Equation): ?number => {
     }
   }
 };
+
+export const getNumbers = (eqn: Equation): Array<number> => {
+  if (typeof eqn === 'number') {
+    return [eqn];
+  }
+  return [...getNumbers(eqn.a), ...getNumbers(eqn.b)];
+};

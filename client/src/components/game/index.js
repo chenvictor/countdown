@@ -44,34 +44,41 @@ const GameInner = ({
     return <div>game state loading</div>;
   }
 
-  switch (gameState.status) {
-    case GAME_STATUS.WAITING:
-      return <Waiting message={gameState.message} timer={gameState.timer}/>
-    case GAME_STATUS.ROUND_STARTING:
-    case GAME_STATUS.ROUND_STARTED:
-    case GAME_STATUS.ROUND_FINISHED:
-      return (
-        <div>
-            <NumbersDisplay 
-              target={gameState.target}
-              numbers={gameState.numbers}
-            />
-            {
-              gameState.target &&
-                <NumbersInput
-                  submitValue={submitValue}
-                  inputMessage={inputMessage}
-                  setInputMessage={setInputMessage}
-                  isSubmitting={submitting}
-                  numbers={gameState.numbers}
-                  timer={gameState.timer}
-                />
-            }
-        </div>
-      );
-    default:
-      return null;
-  }
+  const mainContent = (() => {
+    switch (gameState.status) {
+      case GAME_STATUS.WAITING:
+        return <Waiting message={gameState.message} timer={gameState.timer}/>
+      case GAME_STATUS.ROUND_STARTING:
+      case GAME_STATUS.ROUND_STARTED:
+      case GAME_STATUS.ROUND_FINISHED:
+        return (
+          <div>
+              <NumbersDisplay 
+                target={gameState.target}
+                numbers={gameState.numbers}
+              />
+              {
+                gameState.target &&
+                  <NumbersInput
+                    submitValue={submitValue}
+                    inputMessage={inputMessage}
+                    setInputMessage={setInputMessage}
+                    isSubmitting={submitting}
+                    numbers={gameState.numbers}
+                    timer={gameState.timer}
+                  />
+              }
+          </div>
+        );
+      default:
+        return null;
+    }
+  })();
+
+  return <div>
+    <span>Round {gameState.current_round} of {gameState.total_rounds}</span>
+    {mainContent}
+  </div>
 };
 
 export default GameInner;
