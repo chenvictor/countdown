@@ -6,24 +6,33 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 
+import Waiting from './Waiting';
+
 import {parse} from '../../shared/math/utils';
 
 type Props = {|
-  submitValue: (string) => void,
   numbers: Array<?number>,
+  isSubmitting: bool,
+  inputMessage: ?string,
+  timer: ?number,
+  setInputMessage: (?string) => void,
+  submitValue: (string) => void,
 |};
 
 const NumbersInput = ({
-  submitValue,
   numbers,
+  isSubmitting,
+  inputMessage,
+  setInputMessage,
+  submitValue,
+  timer,
 }: Props) => {
-  const [error, setError] = useState<?string>(null);
   const [value, setValue] = useState<string>('');
 
   const onSubmit = () => {
     const equationOrError = parse(value);
     if (typeof equationOrError === 'string') {
-      setError(equationOrError);
+      setInputMessage(`Error: ${equationOrError}`);
     } else {
       submitValue(value);
     }
@@ -31,12 +40,14 @@ const NumbersInput = ({
   const onChange = (e) => {
     const val = e.target.value;
     if (val.length === 0) {
-      setError('empty');
+      setInputMessage('Error: empty');
     } else {
-      setError(null);
+      setInputMessage('');
     }
     setValue(val);
   };
+
+
   return (
     <React.Fragment>
       <Grid container spacing={8}>
@@ -47,13 +58,20 @@ const NumbersInput = ({
             value={value}
             onChange={onChange}
             variant='outlined'
-            error={Boolean(error)}
-            helperText={error}
+            helperText={inputMessage}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                onSubmit();
+              }
+            }}
           />
         </Grid>
       </Grid>
       <Grid container spacing={8}>
         <Grid item xs align='center'>
+          {
+            timer && <Waiting timer={timer} message='Time left'/>
+          }
           <Button onClick={onSubmit} color='primary' variant='contained'>Submit</Button>
         </Grid>
       </Grid>

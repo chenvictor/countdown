@@ -4,7 +4,7 @@ import React, {useEffect, useState} from 'react';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import type {ID, Player, ReadyStates, LobbyState, GameState} from './shared';
-import {EVENT_TYPE, GAME_STATUS} from './shared';
+import {EVENT_TYPE} from './shared';
 
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogTitle';
@@ -17,7 +17,6 @@ import Row from 'react-bootstrap/Row';
 import PlayerList from './components/PlayerList';
 import Setup from './components/Setup';
 import Game from './components/Game';
-import GameInner from './components/game';
 
 import WebSocketClient from './wsclient';
 
@@ -41,6 +40,9 @@ const App = () => {
       onConnectionChange: (connected): void => {
         setTimeout(() => {
           setConnecting(!connected);
+          if (!connected) {
+            setId(null);
+          }
         }, 250);
       },
       onEvent: (event): void => {
@@ -74,20 +76,6 @@ const App = () => {
           {
             //testing stuff
             <div>
-              {
-                (() => {
-                  const _gameState: GameState = {
-                    status: GAME_STATUS.ROUND_STARTING,
-                    message: 'Reveal numbers',
-                    current_round: 1,
-                    total_rounds: 5,
-                    timer: 30,
-                    target: 303,
-                    numbers: [4, 3, 10, 39, 20, 33],
-                  };
-                  return <GameInner gameState={_gameState}/>
-                })()
-              }
             </div>
           }
           <Row>

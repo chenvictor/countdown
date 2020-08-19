@@ -1,6 +1,6 @@
 // @flow
 
-import type {Player, Request, OkResponse, ErrorResponse, Response, ReadyStates, LobbyState, LobbyStateUpdateEvent} from './shared';
+import type {ID, Player, Request, OkResponse, ErrorResponse, Response, ReadyStates, LobbyState, LobbyStateUpdateEvent} from './shared';
 import {EVENT_TYPE, REQUEST_TYPE, LOBBY_STATE} from './shared';
 
 const {WebSocketServer, WebSocketInstance} = require('./wsserver');
@@ -18,9 +18,11 @@ const OK_RESPONSE: OkResponse = {
   data: null,
 };
 
-// State stuff
+// Lobby State stuff
 const playerNames = new Set<string>();
 let lobbyState: LobbyState = LOBBY_STATE.WAITING_FOR_PLAYERS;
+// Game State stuff
+let currentGame: ?Game = null;
 
 const setLobbyState = (newState: LobbyState, wss: WebSocketServer): bool => {
   if (newState === lobbyState) {
@@ -45,15 +47,16 @@ const setLobbyState = (newState: LobbyState, wss: WebSocketServer): bool => {
 const runGame = async (wss: WebSocketServer) => {
   if(setLobbyState(LOBBY_STATE.IN_GAME, wss)) {
     console.log('running game');
-    const game = new Game(wss);
-    await game.run();
+    currentGame = new Game(wss);
+    await currentGame.run();
+    setLobbyState(LOBBY_STATE.WAITING_FOR_PLAYERS, wss);
+    currentGame = null;
   }
 }
 
 const startGame = (wss: WebSocketServer) => {
   runGame(wss).then(() => {
     console.log('done running game');
-    setLobbyState(LOBBY_STATE.WAITING_FOR_PLAYERS, wss);
   });
 };
 
@@ -115,8 +118,13 @@ const onRequest = (wss: WebSocketServer, ws: WebSocketInstance, request: Request
         return buildError('game already started');
       }
     case REQUEST_TYPE.SUBMIT_ANSWER:
-      console.error('not yet implemented');
-      return buildError('not yet implemented');
+      if (currentGame == null) {
+        return {
+          error: true,
+          message: 'Game not running',
+        };
+      }
+      return currentGame.onPlayerSubmit(ws.id, request.text);
   }
   return buildError('unknown request');
 };
