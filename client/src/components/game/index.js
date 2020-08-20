@@ -3,10 +3,11 @@
 import React, {useContext, useState} from 'react';
 import type {Node} from 'react';
 
-import type {GameState, Response, SubmitAnswerRequest } from '../../shared';
+import type {GameState, Player, Response, SubmitAnswerRequest } from '../../shared';
 import {REQUEST_TYPE, GAME_STATUS} from '../../shared';
 
 import NumbersDisplay from './NumbersDisplay';
+import AnswerDisplay from './AnswerDisplay';
 import NumbersInput from './NumbersInput';
 import Waiting from './Waiting';
 
@@ -14,10 +15,12 @@ import WSContext from '../../WSContext';
 
 type Props = {|
   gameState: ?GameState,
+  players: Array<Player>,
 |};
 
 const GameInner = ({
-  gameState
+  gameState,
+  players,
 }: Props): Node => {
   const client = useContext(WSContext);
   const [submitting, setSubmitting] = useState(false);
@@ -68,6 +71,22 @@ const GameInner = ({
                     timer={gameState.timer}
                   />
               }
+          </div>
+        );
+      case GAME_STATUS.SHOWING_ANSWER:
+        return (
+          <div>
+              <NumbersDisplay 
+                target={gameState.target}
+                numbers={gameState.numbers}
+              />
+              <AnswerDisplay
+                player_name={gameState.player_name}
+                player_score={gameState.player_score}
+                player_answer_value={gameState.player_answer_value} 
+                player_answer={gameState.player_answer}
+                error_message={gameState.error_message}
+              />
           </div>
         );
       default:

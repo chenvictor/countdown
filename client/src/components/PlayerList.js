@@ -2,6 +2,7 @@
 import React from 'react';
 
 import type {Player, ReadyStates} from '../shared';
+import type {Score} from '../shared/game';
 
 import ListGroup from 'react-bootstrap/ListGroup';
 import CheckBoxOutlineBlankOutlinedIcon from '@material-ui/icons/CheckBoxOutlineBlankOutlined';
@@ -12,12 +13,14 @@ type Props = {
   me: ?Player,
   players: Array<Player>,
   readyStates: ReadyStates,
+  score: ?Score,
 };
 
 const PlayerList = ({
   me,
   players,
   readyStates,
+  score,
 }: Props) => {
   return <div>
     <h2>Players</h2>
@@ -29,6 +32,9 @@ const PlayerList = ({
             ? `${player.name} (You)`
             : player.name;
           let readyState = null;
+          const points = score
+            ? ` - ${(score[player.id] || 0)}`
+            : null;
           if (me) {
             readyState = (
               <span className='mr-1'>
@@ -48,7 +54,7 @@ const PlayerList = ({
               </span>
             );
           }
-          return <ListGroup.Item key={player.id}>{readyState}{text}</ListGroup.Item>;
+          return <ListGroup.Item key={player.id}>{readyState}{text}{points}</ListGroup.Item>;
         })}
       </ListGroup>
     }

@@ -80,11 +80,22 @@ const App = () => {
           }
           <Row>
           <Col xs={3}>
-            <PlayerList me={me} players={players} readyStates={readyStates} />
+            <PlayerList
+              me={me}
+              players={players}
+              readyStates={readyStates}
+              score={gameState && gameState.score}
+            />
           </Col>
           <Col>
             {me
-              ? <Game me={me} readyStates={readyStates} lobbyState={lobbyState} gameState={gameState} />
+              ? <Game
+                  me={me}
+                  readyStates={readyStates}
+                  lobbyState={lobbyState}
+                  gameState={gameState}
+                  players={players}
+                />
               : <Setup />
             }
           </Col>

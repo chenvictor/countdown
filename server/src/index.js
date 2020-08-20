@@ -38,7 +38,10 @@ const setLobbyState = (newState: LobbyState, wss: WebSocketServer): bool => {
   if (lobbyState === LOBBY_STATE.WAITING_FOR_PLAYERS) {
     // reset ready state, use _instances to mutate
     wss._instances.forEach(ws => ws.ready = false);
-    console.log(getReadyStates(wss));
+    if (currentGame) {
+      currentGame.cancel();
+      currentGame = null;
+    }
     wss.broadcastReadyStates(getReadyStates(wss));
   }
   return true;
@@ -47,6 +50,9 @@ const setLobbyState = (newState: LobbyState, wss: WebSocketServer): bool => {
 const runGame = async (wss: WebSocketServer) => {
   if(setLobbyState(LOBBY_STATE.IN_GAME, wss)) {
     console.log('running game');
+    if (currentGame) {
+      currentGame.cancel();
+    }
     currentGame = new Game(wss);
     await currentGame.run();
     setLobbyState(LOBBY_STATE.WAITING_FOR_PLAYERS, wss);
@@ -65,11 +71,6 @@ const onConnection = (wss: WebSocketServer, ws: WebSocketInstance) => {
   ws.sendPlayerList(getPlayerList(wss));
   {
     // temp assign name for faster dev
-    if (playerNames.size === 0) {
-      playerNames.add('foobar');
-      ws.name = 'foobar';
-      wss.broadcastPlayerList(getPlayerList(wss));
-    }
   }
 };
 

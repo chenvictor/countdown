@@ -2,6 +2,9 @@
 
 import assert from 'assert';
 
+import {evaluate, getNumbers} from '../shared/math';
+import type {Equation} from '../shared/math';
+
 export const sleep = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
@@ -37,3 +40,23 @@ export const getScore = (difference: number): number => {
   }
   return 0;
 }
+
+export const getErrorOrValue = (equation: Equation, available_numbers: Array<number>): (string | number) => {
+  const count = new Map<number, number>();
+  for (const num of available_numbers) {
+    const cur = count.get(num) || 0;
+    count.set(num, cur+1)
+  }
+  for (const rem of getNumbers(equation)) {
+    const cur = count.get(rem) || 0;
+    if (cur === 0) {
+      return `${rem} was used more times than it appears`;
+    }
+    count.set(rem, cur-1);
+  }
+  const val = evaluate(equation);
+  if (!val) {
+    return 'Equation is invalid';
+  }
+  return val;
+};

@@ -9,7 +9,7 @@ import NumberSpinner from './NumberSpinner';
 
 type Props = {|
   target: ?number,
-  numbers: Array<?number>,
+  numbers: Array<?number> | Array<number>,
 |};
 
 const NumbersDisplay = ({

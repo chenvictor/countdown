@@ -13,6 +13,7 @@ type Props = {|
   readyStates: ReadyStates,
   lobbyState: ?LobbyState,
   gameState: ?GameState,
+  players: Array<Player>,
 |};
 
 const Game = ({
@@ -20,6 +21,7 @@ const Game = ({
   readyStates,
   lobbyState,
   gameState,
+  players
 }: Props) => {
   const isReady: bool = Boolean(readyStates[me.id]);
   switch (lobbyState) {
@@ -27,7 +29,12 @@ const Game = ({
     case LOBBY_STATE.WAITING_FOR_PLAYERS:
       return <Lobby isReady={isReady} />;
     case LOBBY_STATE.IN_GAME:
-      return <GameInner gameState={gameState} />
+      return (
+        <GameInner
+          gameState={gameState}
+          players={players}
+        />
+      )
     default:
       console.error('Unexpected lobby state!', lobbyState);
       return null;

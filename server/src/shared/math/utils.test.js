@@ -1,5 +1,5 @@
 // flow-disable-line
-const {parse, evaluate} = require('./utils');
+const {parse, evaluate, getNumbers} = require('./utils');
 
 const basic = '1+2';
 const complex = [
@@ -55,4 +55,22 @@ test('parses and evaluates', () => {
     expect(typeof expr).not.toBe('string');
     expect(evaluate(expr)).toBe(value);
   }
+});
+
+test('extracts numbers', () => {
+  const expr = '1+3+10';
+  const numbers = getNumbers(parse(expr));
+  numbers.sort();
+  const expected = [1,3,10];
+  expected.sort();
+  expect(numbers).toEqual(expected);
+});
+
+test('extracts numbers 2', () => {
+  const expr = '1+9-100/50';
+  const numbers = getNumbers(parse(expr));
+  numbers.sort();
+  const expected = [1, 9, 50, 100];
+  expected.sort();
+  expect(numbers).toEqual(expected);
 });

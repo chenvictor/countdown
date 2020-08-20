@@ -33,7 +33,7 @@ export type LobbyStateUpdateEvent = {|
 
 export type GameStateUpdateEvent = {|
   type: typeof EVENT_TYPE.GAME_STATE_UPDATE,
-  state: GameState,
+  state: ?GameState,
 |};
 
 export type Event =
